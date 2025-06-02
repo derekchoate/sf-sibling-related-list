@@ -84,7 +84,7 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
     records;
 
     moreLink;
-
+  
     /**
      * Field definition for the Parent ID Field
      * @type {Object<string, *>} fieldDefintion
