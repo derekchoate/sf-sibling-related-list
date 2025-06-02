@@ -83,6 +83,8 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
      */
     records;
 
+    moreLink;
+  
     /**
      * Field definition for the Parent ID Field
      * @type {Object<string, *>} fieldDefintion
@@ -145,6 +147,9 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
     handleGetRecord({ error, data }) {
         if (data) {
             this.parentRecordId = getFieldValue(data, this.parentIdFieldDefinition);
+            this.generateMoreLink().then(link => {
+                this.moreLink = link;
+            });
         }
         else if (error) {
             console.error('An error occurred whilst retrieving the record');
@@ -383,6 +388,22 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
             console.error(JSON.stringify(ex, null, 5));
             return undefined;
         }
+    }
+
+    async generateMoreLink() {
+        const link = await this[NavigationMixin.GenerateUrl]({
+            type: "standard__recordRelationshipPage",
+            attributes: {
+                actionName : 'view',
+                objectApiName: this.parentSObjectTypeName,
+                recordId: this.parentRecordId,
+                relationshipApiName: this.relationshipName
+            }
+        });
+
+        console.log(`more link is ${link}`);
+
+        return link;
     }
 
     /**
