@@ -12,8 +12,9 @@
     <targetConfigs>
         <targetConfig targets="lightningCommunity__Default">
             <property name="recordId" label="Record Id" type="String" description="Id of the current record" />
-            <property name="sObjectTypeName" label="Parent SObject Type Name" type="String" description="SObject Type Name of the parent record. For example 'Account'" />
-            <property name="parentRecordId" label="Parent Record Id" type="String" description="Id of the parent record. For example {!record.accountId}" />
+            <property name="sObjectTypeName" label="SObject Type Name" type="String" description="SObject Type Name of the this record. For example 'Opportunity'" />
+            <property name="parentSObjectTypeName" label="Parent SObject Type Name" type="String" description="SObject Type Name of the parent record. For example 'Account'" />
+            <property name="parentIdField" label="Parent Id Field API Name" type="String" description="Name of the field that holds the parent id. For example 'AccountId'" />
             <property name="relationshipName" label="Relationship Name" type="String" description="Relationship name (from the parent record) whose related records should be listed. For example 'cases'" />
         </targetConfig>
         <targetConfig targets="lightning__RecordPage">
