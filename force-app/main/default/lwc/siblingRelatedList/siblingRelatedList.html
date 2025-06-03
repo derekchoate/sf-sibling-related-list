@@ -15,7 +15,7 @@
                                 <div class="slds-page-header__name-title">
                                     <h1>
                                         <span class="slds-page-header__title slds-truncate"
-                                            title={relationshipName}>{relationshipName}</span>
+                                            title={relationshipName}>{relationshipLabel}</span>
                                     </h1>
                                 </div>
                             </div>
@@ -25,11 +25,11 @@
             </div>
         </div>
         <div>
-            <lightning-datatable key-field="id" columns={displayColumns} data={records} hide-checkbox-column>
-            </lightning-datatable>
+            <c-related-list-data-table key-field="id" columns={displayColumns} data={records} hide-checkbox-column>
+            </c-related-list-data-table>
         </div>
-        <div class="slds-text-align_center slds-p-top_x-small">
-            <a class="slds-card__footer" href={moreLink}>
+        <div class="slds-text-align_center slds-var-p-around_small">
+            <a href={moreLink}>
                 <span class="view-all-label">View All<span class="assistiveText">View All</span></span>
             </a>
         </div>
