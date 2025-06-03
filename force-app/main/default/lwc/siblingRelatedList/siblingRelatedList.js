@@ -84,6 +84,13 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
     records;
 
     moreLink;
+
+    /**
+     * The relationship label
+     */
+    get relationshipLabel() {
+        return this.relatedListSummary?.label;
+    }
   
     /**
      * Field definition for the Parent ID Field
