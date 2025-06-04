@@ -1,11 +1,11 @@
 <template>
-    <article class="slds-card slds-card_boundary slds-card_related-list-fix">
+    <article class="slds-card slds-card_boundary">
         <div class="slds-page-header slds-page-header_related-list related-list-header">
             <div class="slds-page-header__row">
                 <div class="slds-page-header__col-title">
                     <div class="slds-media">
                         <div class="slds-media__figure">
-                            <span class="record-avatar-container slds-avatar slds-avatar_small icon slds-var-m-right_small" title={entityLabelPlural}>
+                            <span class="record-avatar-container slds-avatar slds-avatar_small icon" title={entityLabelPlural}>
                                 <img src={iconUrl} alt={entityLabelPlural} lwc:ref="relatedListIcon" />
                                 <span class="slds-assistive-text">{entityLabelPlural}</span>
                             </span>
@@ -24,8 +24,13 @@
                 </div>
             </div>
         </div>
-        <div>
-            <c-related-list-data-table key-field="id" columns={displayColumns} data={records} hide-checkbox-column>
+        <div class="slds-border_top">
+            <c-related-list-data-table class="slds-m-right_none"
+                                       key-field="id" 
+                                       columns={displayColumns} 
+                                       data={records} 
+                                       hide-checkbox-column
+                                       resize-column-disabled>
             </c-related-list-data-table>
         </div>
         <div class="slds-text-align_center slds-var-p-around_small">
