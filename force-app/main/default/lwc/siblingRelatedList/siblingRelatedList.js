@@ -253,13 +253,21 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
             //Loop throug the fields to get the values
             for (const field of this.displayColumns) {
 
-                //If the data type is string, then get the display value, 
-                // otherwise allow the components to format the value correctly
-                if (field.type === 'string') {
-                    record[field.fieldApiName] = getFieldDisplayValue(recordData, field.apiPath);
+                console.log(field.dataType);
+
+                //If the data type is textArea, then unescape HTML
+                if (field.dataType === 'textarea') {
+                    record[field.fieldApiName] = getFieldValue(recordData, field.apiPath) || '';
                 }
+
+                //If the data type is string, then get the display value
+                else if (field.type === 'string') {
+                    record[field.fieldApiName] = getFieldDisplayValue(recordData, field.apiPath) || '';
+                }
+
+                // otherwise allow the components to format the value correctly
                 else {
-                    record[field.fieldApiName] = getFieldValue(recordData, field.apiPath);
+                    record[field.fieldApiName] = getFieldValue(recordData, field.apiPath) || '';
                 }
                 
                 //If the field is a lookup, set the url

@@ -4,7 +4,7 @@ import richTextTemplate from "./richText.html";
 export default class RelatedListDataTable extends LightningDatatable {
 
     static customTypes = {
-        textArea: {
+        textarea: {
             template: richTextTemplate,
             standardCellLayout: true,
         }
