@@ -2,6 +2,7 @@ import { LightningElement, api, wire, track } from 'lwc';
 import { getRelatedListRecords, getRelatedListsInfo, getRelatedListInfo } from 'lightning/uiRelatedListApi';
 import { getRecord, getFieldValue, getFieldDisplayValue } from 'lightning/uiRecordApi';
 import { NavigationMixin } from "lightning/navigation";
+import ERROR_MESSAGE from "@salesforce/label/c.Sibling_Related_List_Error_Message";
 
 export default class SiblingRelatedList extends NavigationMixin(LightningElement) {
 
@@ -47,6 +48,11 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
     parentRecordId;
 
     /**
+     * Id of the parent's recordType
+     */
+    parentRecordTypeId;
+
+    /**
      * Summary info about the related list, includes things like the icon and colour
      * @type {Object<string, *>} Related List Info Summary https://developer.salesforce.com/docs/atlas.en-us.uiapi.meta/uiapi/ui_api_responses_related_list_summary.htm
      */
@@ -83,10 +89,50 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
      */
     records;
 
+    /**
+     * link to view all related records
+     */
     moreLink;
 
     /**
+     * flag to indicate whether an error occurred whilst loading the data
+     * @type {boolean} true, if there was an error loading the data, otherwise false
+     */
+    hasError = false;
+
+    /**
+     * Whether the record has been loaded
+     * @type {boolean}
+     */
+    recordLoaded = false;
+
+    /**
+     * Whether the parent record has been loaded
+     * @type {boolean}
+     */
+    parentRecordLoaded = false;
+
+    /**
+     * Whether the related list summary has loaded
+     * @type {boolean}
+     */
+    relatedListSummaryLoaded = false;
+
+    /**
+     * Whether the related list detail has loaded
+     * @type {boolean}
+     */
+    relatedListDetailLoaded = false;
+
+    /**
+     * Whether the related list records have been loaded
+     * @type {boolean}
+     */
+    relatedListRecordsLoaded = false;
+
+    /**
      * The relationship label
+     * @type {string}
      */
     get relationshipLabel() {
         return this.relatedListSummary?.label;
@@ -102,11 +148,28 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
     }
 
     /**
+     * Field definition for the Record Type ID
+     * @type {Object<string, *>} fieldDefintion
+     */
+    get recordTypeIdFieldDefinition() {
+        return {"fieldApiName":"RecordTypeId",
+                "objectApiName":this.parentSObjectTypeName};
+    }
+
+    /**
      * Parent ID Field in an array
      * @type {[Object<string, *>]} fieldDefintions
      */
     get parentIdFieldArray() {
         return [this.parentIdFieldDefinition];
+    }
+
+    /**
+     * Field definition for the Record Type ID
+     * @type {Object<string, *>} fieldDefintion
+     */
+    get recordTypeIdFieldArray() {
+        return [this.recordTypeIdFieldDefinition];
     }
 
     /**
@@ -145,6 +208,24 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
     }
 
     /**
+     * Flag to indicate whether all loading was complete
+     */
+    get dataLoaded() {
+        return (this.recordLoaded &&
+                this.parentRecordLoaded &&
+                this.relatedListDetailLoaded &&
+                this.relatedListRecordsLoaded);
+    }
+
+    /**
+     * Error message to display to the user
+     * @type {string}
+     */
+    get errorMessage() {
+        return ERROR_MESSAGE;
+    }
+
+    /**
      * Gets the parentId for this record
      */
     @wire (getRecord, {
@@ -157,10 +238,28 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
             this.generateMoreLink().then(link => {
                 this.moreLink = link;
             });
+            this.recordLoaded = true;
         }
         else if (error) {
+            this.hasError = true;
             console.error('An error occurred whilst retrieving the record');
             console.error(JSON.stringify(error, null, 5));
+        }
+    }
+
+    /**
+     * Gets the parent recordTypeId for the parent record
+     */
+    @wire (getRecord, {
+        recordId: "$parentRecordId",
+        fields: "$recordTypeIdFieldArray"})
+    handleGetParentRecord({ error, data }) {
+        if (data) {
+            this.parentRecordTypeId = getFieldValue(data, this.recordTypeIdFieldDefinition);
+            this.parentRecordLoaded = true;
+        }
+        else if (error) {
+            this.parentRecordLoaded = true;
         }
     }
 
@@ -168,14 +267,17 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
      * Gets the related list summary for the child relationship
      */
     @wire(getRelatedListsInfo, {
-        parentObjectApiName: "$parentSObjectTypeName"
+        parentObjectApiName: "$parentSObjectTypeName",
+        recordTypeId: "$parentRecordTypeId"
     })
     handleGetRelatedListsInfo({ error, data }) {
         if (data && Array.isArray(data.relatedLists)) {
             this.relatedListSummary = data.relatedLists.find(rl => rl.relatedListId?.toLowerCase() === this.relationshipName?.toLowerCase());
             this.setIconColor();
+            this.relatedListSummaryLoaded = true;
         }
         else if (error) {
+            this.hasError = true;
             console.error('An error occurred whilst retrieving the related list summary');
             console.error(JSON.stringify(error, null, 5));
         }
@@ -186,7 +288,8 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
      */
     @wire(getRelatedListInfo, {
         parentObjectApiName: "$parentSObjectTypeName",
-        relatedListId: "$relationshipName"
+        relatedListId: "$relationshipName",
+        recordTypeId: "$parentRecordTypeId"
     })
     handleGetRelatedListInfo({ error, data }) {
         if (data) {
@@ -197,8 +300,10 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
             else {
                 this.relatedListFieldNames = undefined;
             }
+            this.relatedListDetailLoaded = true;
         }
         else if (error) {
+            this.hasError = true;
             console.error('An error occurred whilst retrieving the related list info');
             console.error(JSON.stringify(error, null, 5));
         }
@@ -216,8 +321,10 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
         if (data) {
             this.page = data;
             this.records = await this.prepareDisplayRecords(data.records);
+            this.relatedListRecordsLoaded = true;
         }
         else if (error) {
+            this.hasError = true;
             console.error('An error occurred whilst retrieving the related list records');
             console.error(JSON.stringify(error, null, 5));
         }
@@ -227,9 +334,7 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
      * Sets the icon background colour
      */
     setIconColor() {
-        if (this.refs.relatedListIcon) {
-            this.refs.relatedListIcon.style.backgroundColor = this.iconColor;
-        }
+        this.template.host.style.setProperty('--iconColor', this.iconColor);
     }
 
     /**
@@ -253,8 +358,6 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
             //Loop throug the fields to get the values
             for (const field of this.displayColumns) {
 
-                console.log(field.dataType);
-
                 //If the data type is textArea, then unescape HTML
                 if (field.dataType === 'textarea') {
                     record[field.fieldApiName] = getFieldValue(recordData, field.apiPath) || '';
@@ -277,8 +380,6 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
             }
             records.push(record);
         }
-
-        console.log(JSON.stringify(records, null, 5));
         
         return records;
     }
@@ -368,8 +469,8 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
                 //loop through each element of the path and get the corresponding value node
                 for (const objKey of lookupId.split('\\.')) {
                     currentVal = currentVal[objKey]?.value;
-                    if (!currentVal) {
-                        console.error(`could not find object with key ${objKey}`);
+                    if (currentVal === undefined) {
+                        console.error(`could not find field value with key ${objKey}`);
                         break;
                     }
                 }
@@ -383,9 +484,8 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
                 recordId = currentVal.id;
             }
             
-            //just in case no record id was found, return nothing
+            //just in case no record id was found, or it was null, return nothing
             if (!recordId) {
-                console.error(`could not find record id`);
                 return undefined;
             }
             
@@ -415,8 +515,6 @@ export default class SiblingRelatedList extends NavigationMixin(LightningElement
                 relationshipApiName: this.relationshipName
             }
         });
-
-        console.log(`more link is ${link}`);
 
         return link;
     }
