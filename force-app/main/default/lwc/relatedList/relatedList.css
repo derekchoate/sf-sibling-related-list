@@ -1,0 +1,12 @@
+.related-list-header {
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.object-icon-image {
+    background-color: var(--iconColor);
+}
+
+.error-message-wrapper {
+    gap:1rem;
+}

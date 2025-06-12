@@ -1,0 +1,53 @@
+<template>
+    <article class="slds-card slds-card_boundary">
+        <div class="slds-page-header slds-page-header_related-list related-list-header" lwc:if={relatedListSummary}>
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__figure">
+                            <span class="record-avatar-container slds-avatar slds-avatar_small icon" title={entityLabelPlural}>
+                                <img src={iconUrl} alt={entityLabelPlural} lwc:ref="relatedListIcon" class="object-icon-image" />
+                                <span class="slds-assistive-text">{entityLabelPlural}</span>
+                            </span>
+                        </div>
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span class="slds-page-header__title slds-truncate"
+                                            title={relationshipLabel}>{relationshipLabel}</span>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <template lwc:if={dataLoaded}>
+            <div class="slds-border_top">
+                <c-related-list-data-table class="slds-m-right_none"
+                                        key-field="id" 
+                                        columns={displayColumns} 
+                                        data={records} 
+                                        hide-checkbox-column
+                                        resize-column-disabled>
+                </c-related-list-data-table>
+            </div>
+            <div class="slds-text-align_center slds-var-p-around_small">
+                <a href={moreLink}>
+                    <span class="view-all-label">View All<span class="assistiveText">View All</span></span>
+                </a>
+            </div>
+        </template>
+        <template lwc:elseif={hasError}>
+            <div class="slds-var-p-around_small slds-grid slds-media_center slds-grid_align-center error-message-wrapper">
+                <lightning-icon icon-name="utility:error" alternative-text="An error occurred"></lightning-icon>
+                <lightning-formatted-text value={errorMessage}></lightning-formatted-text>
+            </div>
+        </template>
+        <template lwc:else>
+            <lightning-spinner alternative-text="Loading related records"></lightning-spinner>
+        </template>
+    </article>
+</template>
